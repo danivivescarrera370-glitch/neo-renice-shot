@@ -23,7 +23,7 @@ Press **F9** to take a screenshot.
 
 The game is temporarily rendered at the configured resolution, the screenshot is captured, and the original resolution is restored automatically.
 
-By default, screenshots are captured at **3840 × 2160 (4K)**.
+By default, screenshots are captured at 3840 × 2160 (4k).
 
 ## Features
 

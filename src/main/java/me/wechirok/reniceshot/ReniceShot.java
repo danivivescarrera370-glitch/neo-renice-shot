@@ -29,43 +29,41 @@ import com.mojang.blaze3d.platform.InputConstants;
 import me.wechirok.reniceshot.capture.CaptureTask;
 import me.wechirok.reniceshot.config.Config;
 import me.wechirok.reniceshot.config.FileFormat;
-import me.wechirok.reniceshot.event.ScreenshotSaveCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-import net.minecraft.ChatFormatting;
 import net.minecraft.util.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.File;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.function.Consumer;
 
 public class ReniceShot {
 
     private static final Logger LOGGER = LogManager.getLogger(ReniceShot.class);
 
+    private static final InputConstants.Key DEFAULT_KEY = InputConstants.getKey("key.keyboard.f9");
+
     public static final KeyMapping SCREENSHOT_BINDING = new KeyMapping(
             "key.renice-shot.screenshot",
-            InputConstants.Type.KEYBOARD,
-            InputConstants.KEY_F9,
+            DEFAULT_KEY.getType(),
+            DEFAULT_KEY.getValue(),
             KeyMapping.Category.MISC);
 
+    private static final Queue<CaptureTask> pendingCaptures = new ArrayDeque<>();
     private static CaptureTask task;
 
-    private static void printFileLink(Path path) {
+    public static void showMessage(Component message) {
         Minecraft minecraft = Minecraft.getInstance();
-
-        Component fileText = Component.literal(path.toFile().getName())
-                .withStyle(ChatFormatting.UNDERLINE)
-                .withStyle(style -> style.withClickEvent(new ClickEvent.OpenFile(path)));
         minecraft.execute(() -> {
-            Component message = Component.translatable("screenshot.success", fileText);
-
             minecraft.gui.hud.getChat().addClientSystemMessage(message);
             minecraft.getNarrator().saySystemQueued(message);
         });
@@ -73,22 +71,46 @@ public class ReniceShot {
 
     public static void initialize() {
         KeyMappingHelper.registerKeyMapping(SCREENSHOT_BINDING);
-        ScreenshotSaveCallback.EVENT.register(ReniceShot::printFileLink);
     }
 
     public static void startCapture() {
-        Minecraft minecraft = Minecraft.getInstance();
+        startCapture(Minecraft.getInstance().gameDirectory, null, 1, ReniceShot::showMessage, null);
+    }
 
-        if (task == null) {
+    public static void startCapture(File gameDirectory, String fileName, int downscale,
+                                    Consumer<Component> messageReceiver, Consumer<CaptureTask> capture) {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.execute(() -> {
             boolean saveFile = Config.SAVE_FILE;
-            FileFormat fileFormat = Config.CAPTURE_FILE_FORMAT;
+            FileFormat fileFormat = fileName == null ? Config.CAPTURE_FILE_FORMAT : FileFormat.PNG;
 
             try {
-                task = new CaptureTask(minecraft, getScreenshotFile(minecraft, saveFile, fileFormat), saveFile, fileFormat);
-                task.setResolution(Config.CAPTURE_WIDTH, Config.CAPTURE_HEIGHT);
+                if (downscale < 1 || Config.CAPTURE_WIDTH % downscale != 0 || Config.CAPTURE_HEIGHT % downscale != 0) {
+                    throw new IllegalArgumentException("Capture size must be divisible by the downscale factor");
+                }
+                Path file = getScreenshotFile(minecraft, gameDirectory.toPath(), fileName, saveFile, fileFormat);
+                pendingCaptures.add(new CaptureTask(minecraft, file, saveFile, fileFormat, downscale,
+                        fileName == null && saveFile, messageReceiver,
+                        saveFile && fileFormat == FileFormat.PNG ? capture : null));
+                beginNextCapture();
+            } catch (IOException | RuntimeException exception) {
+                reportFailure(exception, messageReceiver);
+            }
+        });
+    }
+
+    private static void beginNextCapture() {
+        while (task == null && !pendingCaptures.isEmpty()) {
+            task = pendingCaptures.remove();
+            try {
+                task.begin();
                 refresh();
-            } catch (IOException exception) {
-                reportFailure(exception);
+            } catch (RuntimeException exception) {
+                task.discardReservedFile(exception);
+                reportFailure(exception, task.messageReceiver());
+                task.restoreState();
+                task = null;
+                refresh();
             }
         }
     }
@@ -102,7 +124,12 @@ public class ReniceShot {
         final boolean finished;
         try {
             finished = currentTask.onRenderTick();
-        } catch (RuntimeException | Error exception) {
+        } catch (RuntimeException exception) {
+            currentTask.discardReservedFile(exception);
+            reportFailure(exception, currentTask.messageReceiver());
+            finishCapture(currentTask);
+            return;
+        } catch (Error exception) {
             currentTask.discardReservedFile(exception);
             finishCapture(currentTask);
             throw exception;
@@ -121,6 +148,7 @@ public class ReniceShot {
                 task = null;
             }
             refresh();
+            beginNextCapture();
         }
     }
 
@@ -129,20 +157,26 @@ public class ReniceShot {
     }
 
     public static void reportFailure(Throwable exception) {
+        reportFailure(exception, ReniceShot::showMessage);
+    }
+
+    public static void reportFailure(Throwable exception, Consumer<Component> messageReceiver) {
         LOGGER.error("Screenshot capture failed", exception);
 
         Minecraft minecraft = Minecraft.getInstance();
         String reason = exception.getMessage() != null ? exception.getMessage() : exception.getClass().getSimpleName();
         minecraft.execute(() -> {
-            Component message = Component.translatable("screenshot.failure", reason);
-            minecraft.gui.hud.getChat().addClientSystemMessage(message);
-            minecraft.getNarrator().saySystemQueued(message);
+            messageReceiver.accept(Component.translatable("screenshot.failure", reason));
         });
     }
 
-    private static Path getScreenshotFile(Minecraft client, boolean saveFile, FileFormat fileFormat) throws IOException {
-        Path dir = client.gameDirectory.toPath().resolve("screenshots");
+    private static Path getScreenshotFile(Minecraft client, Path gameDirectory, String fileName,
+                                          boolean saveFile, FileFormat fileFormat) throws IOException {
+        Path dir = gameDirectory.resolve("screenshots");
         Files.createDirectories(dir);
+        if (fileName != null) {
+            return dir.resolve(fileName);
+        }
 
         String world = null;
 

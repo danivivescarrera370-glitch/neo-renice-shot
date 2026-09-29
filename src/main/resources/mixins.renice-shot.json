@@ -4,6 +4,7 @@
   "package": "me.wechirok.reniceshot.mixins",
   "mixins": [
     "MinecraftClientMixin",
+    "ScreenshotMixin",
     "RenderscaleCommonClassMixin"
   ],
   "injectors": {

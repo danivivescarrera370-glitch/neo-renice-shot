@@ -26,7 +26,8 @@ The game is temporarily rendered at the configured resolution, the screenshot is
 By default, screenshots are captured at 3840 × 2160 (4k).
 
 ## Features
-
+- Optional override of normal screenshots
+- Optional override of screenshots requested by other mods
 - Custom screenshot width and height
 - PNG, JPG, TGA and BMP output
 - Optional HUD hiding during capture

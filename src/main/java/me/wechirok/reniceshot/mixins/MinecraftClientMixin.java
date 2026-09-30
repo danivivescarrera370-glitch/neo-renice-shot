@@ -26,6 +26,8 @@
 package me.wechirok.reniceshot.mixins;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.wechirok.reniceshot.ReniceShot;
 import me.wechirok.reniceshot.config.Config;
 import net.minecraft.client.Minecraft;
@@ -39,7 +41,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
 
-    @Inject(method = "renderFrame", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render()V", shift = At.Shift.AFTER))
+    @Inject(method = "renderFrame", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render", shift = At.Shift.AFTER))
     private void postRender(CallbackInfo callbackInfo) {
         ReniceShot.onRenderPreOrPost();
     }
@@ -51,11 +53,12 @@ public class MinecraftClientMixin {
         }
     }
 
-    @Inject(method = "handleGlobalKeyPress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Screenshot;grab(Lnet/minecraft/client/Minecraft;Z)V"), cancellable = true)
-    private void onScreenshot(InputConstants.Key key, boolean controlDown, CallbackInfoReturnable<Boolean> cir) {
+    @WrapOperation(method = "handleGlobalKeyPress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Screenshot;grab(Lnet/minecraft/client/Minecraft;Z)V"))
+    private void screenshotFromKey(Minecraft minecraft, boolean controlDown, Operation<Void> original) {
         if (Config.OVERRIDE_SCREENSHOT_KEY) {
             ReniceShot.startCapture();
-            cir.setReturnValue(true);
+        } else {
+            ReniceShot.withVanillaScreenshotKey(() -> original.call(minecraft, controlDown));
         }
     }
 }

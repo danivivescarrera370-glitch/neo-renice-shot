@@ -4,7 +4,7 @@
 
 A lightweight client-side Fabric mod for taking high-resolution screenshots.
 
-It keeps the familiar [Fabrishot](https://github.com/ramidzkh/fabrishot) workflow while focusing on faster support for new versions and more reliable screenshot capture.
+It keeps the familiar [Fabrishot](https://github.com/ramidzkh/fabrishot) workflow while offering faster support for new versions, more reliable screenshot capture, and fixes for some Fabrishot issues.
 
 <br clear="left"/>
 

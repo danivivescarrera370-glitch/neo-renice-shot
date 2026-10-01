@@ -4,7 +4,7 @@
 
 A lightweight client-side Fabric mod for taking high-resolution screenshots.
 
-It keeps the familiar [Fabrishot](https://github.com/ramidzkh/fabrishot) workflow while focusing on faster support for new mc versions and more reliable screenshot capture.
+It keeps the familiar [Fabrishot](https://github.com/ramidzkh/fabrishot) workflow while focusing on faster support for new versions and more reliable screenshot capture.
 
 <br clear="left"/>
 
@@ -26,17 +26,24 @@ The game is temporarily rendered at the configured resolution, the screenshot is
 By default, screenshots are captured at 3840 × 2160 (4k).
 
 ## Features
+
 - Optional override of normal screenshots
-- Optional override of screenshots requested by other mods
 - Custom screenshot width and height
 - PNG, JPG, TGA and BMP output
 - Optional HUD hiding during capture
 - Configurable capture delay
 - Custom screenshot file names with `%time%` and `%world%` variables
 - Automatic restoration of resolution and HUD state
-- Cleanup of incomplete screenshot files and in-game error reporting
 
 Screenshots are saved to Minecraft's default `screenshots` folder with the `huge_` prefix by default.
+
+## Improvements
+
+- Faster support for new versions
+- Screenshots requested by other mods through screenshot API can use your capture settings while keeping their original filenames and save locations.
+- If several screenshots are requested at once, they are taken in order instead of being skipped.
+- If a screenshot fails, your resolution and HUD are restored, unfinished files are removed, and the error is shown in-game and logged.
+- Screenshot files are saved more reliably, including when a filename is already taken or writing fails.
 
 ## Configuration
 

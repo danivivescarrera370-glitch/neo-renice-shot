@@ -40,10 +40,10 @@ Screenshots are saved to Minecraft's default `screenshots` folder with the `huge
 ## Improvements
 
 - Faster support for new versions
-- Screenshots requested by other mods through screenshot API can use your capture settings while keeping their original filenames and save locations.
-- If several screenshots are requested at once, they are taken in order instead of being skipped.
-- If a screenshot fails, your resolution and HUD are restored, unfinished files are removed, and the error is shown in-game and logged.
-- Screenshot files are saved more reliably, including when a filename is already taken or writing fails.
+- Optional override of screenshots requested by other mods through screenshot API
+- If several screenshots are requested at once, they are taken in order instead of being skipped
+- If a screenshot fails, your resolution and HUD are restored, unfinished files are removed, and the error is shown in-game and logged
+- Screenshot files are saved more reliably, including when a filename is already taken or writing fails
 
 ## Configuration
 

@@ -5,7 +5,7 @@ license = "MIT"
 [[mods]]
 modId = "renice-shot"
 version = "1.0.0"
-displayName = "Renice Shot"
+displayName = "Renice Shot Neo"
 displayURL = "https://modrinth.com"
 logoFile = "assets/renice-shot/icon.png"
 authors = "Unofficial Port Studio"

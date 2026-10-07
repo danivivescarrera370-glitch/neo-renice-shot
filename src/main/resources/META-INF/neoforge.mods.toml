@@ -9,7 +9,7 @@ displayName = "Renice Shot"
 displayURL = "https://modrinth.com"
 logoFile = "assets/renice-shot/icon.png"
 authors = "Unofficial Port Studio"
-description = "Take high resolution screenshots because why not"
+description = "An unofficial port that lets you take high resolution screenshots because why not."
 
 [[dependencies.renice-shot]]
 modId = "neoforge"
@@ -24,5 +24,3 @@ type = "required"
 versionRange = "[26.2,26.3)"
 ordering = "NONE"
 side = "CLIENT"
-
-

@@ -1,0 +1,29 @@
+# NeoForge mod metadata
+modLoader = "neoforge"
+loaderVersion = "[26]"
+license = "MIT"
+
+[[mods]]
+modId = "renice-shot"
+version = "1.0.0"
+displayName = "Renice Shot"
+displayURL = "https://modrinth.com"
+logoFile = "assets/renice-shot/icon.png"
+authors = "Unofficial Port Studio"
+description = "Take high resolution screenshots because why not"
+
+[[dependencies.renice-shot]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.2,26.3)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.renice-shot]]
+modId = "minecraft"
+type = "required"
+versionRange = "[26.2,26.3)"
+ordering = "NONE"
+side = "CLIENT"
+
+

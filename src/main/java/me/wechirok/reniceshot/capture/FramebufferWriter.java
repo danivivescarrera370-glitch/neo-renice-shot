@@ -67,7 +67,7 @@ public class FramebufferWriter {
         ScreenshotSaveCallback.EVENT.invoker().onSaved(file);
     }
 
-    private static class WriteCallback extends STBIWriteCallback implements AutoCloseable, Closeable {
+    private static class WriteCallback extends STBIWriteCallback implements Closeable {
         private final WritableByteChannel channel;
         private IOException exception;
 
@@ -94,7 +94,18 @@ public class FramebufferWriter {
 
         @Override
         public void close() {
-            this.free();
+            try {
+                if (this.channel != null) {
+                    this.channel.close();
+                }
+            } catch (IOException e) {
+                // Suppress or assign to exception if tracking close failures
+                if (this.exception == null) {
+                    this.exception = e;
+                }
+            } finally {
+                this.free();
+            }
         }
     }
 }

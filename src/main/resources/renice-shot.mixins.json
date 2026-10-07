@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "me.wechirok.reniceshot.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MinecraftClientMixin",
+    "ScreenshotMixin",
+    "RenderscaleCommonClassMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
